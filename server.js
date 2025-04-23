@@ -73,8 +73,7 @@ console.log('[DEBUG] API URL:', process.env.OPENAI_API_URL);
       },
       {
         headers: {
-          Authorization: `Bearer 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` // вставь свой ключ прямо сюда
-
+         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Мондей | AI-Диалоги</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -187,6 +188,21 @@
       from { opacity: 0; }
       to { opacity: 1; }
     }
+.message.bot h1,
+.message.bot h2,
+.message.bot h3 {
+  color: var(--accent);
+  margin: 0.5em 0;
+}
+
+.message.bot ul {
+  padding-left: 1.5em;
+}
+
+.message.bot li {
+  margin-bottom: 0.4em;
+}
+
   </style>
 </head>
 <body>
@@ -404,9 +420,11 @@
     }
 
     function addBotMessage(text) {
-      chat.innerHTML += `<div class="message bot">${text}</div>`;
-      scrollToBottom();
-    }
+  const rendered = marked.parse(text);
+  chat.innerHTML += `<div class="message bot">${rendered}</div>`;
+  scrollToBottom();
+}
+
 
     function showTyping() {
       chat.innerHTML += `<div class="typing">Мондей думает...</div>`;

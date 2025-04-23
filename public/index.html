@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Мондей | AI-Диалоги</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --accent: #8774e1;
+      --user-bg: #2b5278;
+      --bot-bg: #1f3926;
+      --text: #e1e3e6;
+      --system-bg: #2d2d2d;
+      --input-height: 60px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: calc(var(--input-height) + 20px);
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .message {
+      max-width: 75%;
+      margin: 8px 0;
+      padding: 12px 16px;
+      border-radius: 18px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .user {
+      background: var(--user-bg);
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot {
+      background: var(--bot-bg);
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.system {
+      background: var(--system-bg);
+      margin: 12px auto;
+      text-align: center;
+      padding: 8px 16px;
+      width: fit-content;
+    }
+
+    .system button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      padding: 6px 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .message.error {
+      background: #3a1d1d;
+      border: 1px solid #ff4444;
+    }
+
+    .message.error button {
+      background: none;
+      border: none;
+      color: #ff8888;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 8px;
+    }
+
+    #input-area {
+      position: sticky;
+      bottom: 0;
+      background: var(--bg);
+      border-top: 1px solid #2d2d2d;
+      padding: 12px;
+      display: flex;
+      gap: 8px;
+      min-height: var(--input-height);
+    }
+
+    #message {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 24px;
+      background: #1c1c1c;
+      color: var(--text);
+      outline: none;
+    }
+
+    #send {
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .typing {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--bot-bg);
+      border-radius: 18px;
+      font-style: italic;
+      opacity: 0.8;
+    }
+
+    #counter {
+      text-align: center;
+      padding: 8px;
+      font-size: 0.9em;
+      color: #888;
+    }
+
+    #reset-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #reset-modal.visible {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-box {
+      background: var(--bg);
+      padding: 24px;
+      border-radius: 14px;
+      width: 80%;
+      max-width: 300px;
+      text-align: center;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: var(--system-bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .modal-buttons button:first-child {
+      background: var(--accent);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="chat"></div>
+  <div id="counter"></div>
+  <div id="input-area">
+    <input type="text" id="message" placeholder="Напиши что-нибудь...">
+    <button id="send">➤</button>
+  </div>
+
+  <div id="reset-modal" class="hidden">
+    <div class="modal-box">
+      <p>Точно хочешь стереть всю историю?</p>
+      <div class="modal-buttons">
+        <button onclick="confirmReset(true)">Да</button>
+        <button onclick="confirmReset(false)">Нет</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (!window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+      document.body.innerHTML = `<div style="padding:20px;text-align:center">
+        <h2>🚫 Ошибка доступа</h2>
+        <p>Пожалуйста, откройте этот WebApp через Telegram</p>
+      </div>`;
+      throw new Error("Invalid launch environment");
+    }
+
+    const API = "";
+    const tg = window.Telegram.WebApp;
+    let messageCount = 0;
+    const MAX_FREE = 5;
+    let lastMessageText = '';
+    let isHistoryLoaded = false;
+
+    tg.expand();
+    tg.MainButton.setText("Разблокировать Мондей");
+    tg.MainButton.color = "#8774e1";
+
+    const chat = document.getElementById('chat');
+    const messageInput = document.getElementById('message');
+    const sendBtn = document.getElementById('send');
+    const counter = document.getElementById('counter');
+
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+
+    async function init() {
+      try {
+        const historyResponse = await fetch(`${API}/history?userId=${tg.initDataUnsafe.user.id}`);
+        const { history } = await historyResponse.json();
+
+        if (history.length > 0) {
+          history.forEach(msg => {
+            if (msg.role === 'user') {
+              addUserMessage(msg.content, true);
+            } else {
+              addBotMessage(msg.content, true);
+            }
+          });
+          isHistoryLoaded = true;
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки истории:', error);
+      }
+
+      if (!isHistoryLoaded) {
+        initSystemMessage();
+        addBotMessage(`<b>${tg.initDataUnsafe.user.first_name}</b>, я Мондей. Ты можешь спросить что угодно, но только ${MAX_FREE} раз.`);
+      }
+
+      scrollToBottom();
+
+      const usageData = await fetch(`${API}/usage?userId=${tg.initDataUnsafe.user.id}`).then(res => res.json());
+      messageCount = usageData.used;
+      updateCounter();
+    }
+
+    init();
+
+    function initSystemMessage() {
+      const systemMsg = document.createElement('div');
+      systemMsg.className = 'message system';
+      systemMsg.innerHTML = `<button onclick="openResetModal()">🔁 Начать сначала</button>`;
+      chat.prepend(systemMsg);
+    }
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text || (messageCount >= MAX_FREE && !tg.MainButton.isVisible)) return;
+
+      lastMessageText = text;
+      addUserMessage(text);
+      messageInput.value = '';
+      showTyping();
+
+      try {
+        const response = await fetch(`${API}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: {
+              text: text,
+              from: { id: tg.initDataUnsafe.user.id }
+            }
+          })
+        });
+
+        const data = await response.json();
+        messageCount = data.used || messageCount + 1;
+
+        if (data.isLimitReached) {
+          tg.MainButton.show();
+          messageInput.disabled = true;
+        }
+
+        hideTyping();
+        addBotMessage(data.message);
+        updateCounter();
+        lastMessageText = '';
+
+      } catch (error) {
+        hideTyping();
+        addErrorMessage();
+      }
+    }
+
+    function addErrorMessage() {
+      chat.innerHTML += `
+        <div class="message bot error">
+          ⚠️ Ошибка связи. <button onclick="retryLast()">↻ Повторить</button>
+        </div>
+      `;
+      scrollToBottom();
+    }
+
+    async function retryLast() {
+      if (!lastMessageText) return;
+
+      const errorMessages = chat.getElementsByClassName('error');
+      while (errorMessages.length > 0) {
+        errorMessages[0].remove();
+      }
+
+      showTyping();
+
+      try {
+        const response = await fetch(`${API}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: {
+              text: lastMessageText,
+              from: { id: tg.initDataUnsafe.user.id }
+            }
+          })
+        });
+
+        const data = await response.json();
+        messageCount = data.used || messageCount;
+
+        if (data.isLimitReached) {
+          tg.MainButton.show();
+          messageInput.disabled = true;
+        }
+
+        hideTyping();
+        addBotMessage(data.message);
+        updateCounter();
+        lastMessageText = '';
+
+      } catch (error) {
+        hideTyping();
+        addErrorMessage();
+      }
+    }
+
+    async function performReset() {
+      try {
+        const response = await fetch(`${API}/reset-history`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: tg.initDataUnsafe.user.id })
+        });
+
+        if (response.ok) {
+          chat.innerHTML = '';
+          initSystemMessage();
+          addBotMessage('История сброшена. Готов к новой драме.');
+          const usageData = await fetch(`${API}/usage?userId=${tg.initDataUnsafe.user.id}`).then(res => res.json());
+          messageCount = usageData.used;
+          updateCounter();
+        }
+      } catch (error) {
+        addBotMessage('🔥 Что-то пошло не так при сбросе');
+      }
+    }
+
+    function confirmReset(confirmed) {
+      document.getElementById('reset-modal').classList.remove('visible');
+      if (confirmed) performReset();
+    }
+
+    function openResetModal() {
+      document.getElementById('reset-modal').classList.add('visible');
+    }
+
+    function addUserMessage(text, fromHistory = false) {
+      if (!fromHistory) {
+        chat.querySelector('.system')?.remove();
+      }
+      chat.innerHTML += `<div class="message user">${escapeHtml(text)}</div>`;
+      scrollToBottom();
+    }
+
+    function addBotMessage(text) {
+      chat.innerHTML += `<div class="message bot">${text}</div>`;
+      scrollToBottom();
+    }
+
+    function showTyping() {
+      chat.innerHTML += `<div class="typing">Мондей думает...</div>`;
+      scrollToBottom();
+    }
+
+    function hideTyping() {
+      const typing = chat.querySelector('.typing');
+      if (typing) typing.remove();
+    }
+
+    function updateCounter() {
+      const remaining = MAX_FREE - messageCount;
+      counter.textContent = remaining > 0 
+        ? `Осталось ${remaining} из ${MAX_FREE} сообщений`
+        : 'Лимит исчерпан!';
+    }
+
+    function scrollToBottom() {
+      setTimeout(() => chat.scrollTo(0, chat.scrollHeight), 50);
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    tg.MainButton.onClick(() => {
+      fetch(`${API}/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id })
+      }).then(() => {
+        tg.MainButton.hide();
+        messageInput.disabled = false;
+        messageCount = 0;
+        updateCounter();
+      });
+    });
+  </script>
+</body>
+</html>

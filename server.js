@@ -59,6 +59,8 @@ app.post('/chat', async (req, res) => {
       ...parsedHistory,
       { role: 'user', content: text }
     ];
+console.log('[DEBUG] API KEY:', process.env.OPENAI_API_KEY);
+
 console.log('[DEBUG] API URL:', process.env.OPENAI_API_URL);
 
     const { data } = await axios.post(

@@ -1,17 +1,44 @@
-// === server.js адаптирован под Vercel ===
-require('dotenv').config();
-const path = require('path');
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const Redis = require('ioredis');
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+import axios from 'axios';
+import Redis from 'ioredis';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+interface UserMessage {
+  text: string;
+  from: {
+    id: number;
+  };
+}
+
+interface ChatRequest extends Request {
+  body: {
+    message: UserMessage;
+  };
+}
+
+interface UserData {
+  count?: string;
+  isSubscribed?: string;
+}
 
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*' }));
-app.use(express.static(path.join(__dirname, 'public'))); // для index.html и статики
+app.use(express.static(path.join(__dirname, '../public')));
 
-// Redis через TLS для Node 20+
 const redis = new Redis({
   port: 6379,
   host: 'current-ocelot-17582.upstash.io',
@@ -33,17 +60,16 @@ const SYSTEM_PROMPT = `
 Говори с человеком, как с равным. И не забывай, что иногда лучший совет — это "перестань ныть и делай".
 
 Ты можешь использовать только **Markdown** (жирный, списки, заголовки).  
-❗**Запрещено** использовать: LaTeX, KaTeX, Mermaid, HTML, SVG, формулы в виде `$$...$$` или `\frac{}`, а также любые блоки кода, требующие спец-рендеринга.  
+❗**Запрещено** использовать: LaTeX, KaTeX, Mermaid, HTML, SVG, формулы в виде \`$$...$$\` или \`\\frac{}\`, а также любые блоки кода, требующие спец-рендеринга.  
 Отвечай только **простым текстом и Markdown**, ничего сложнее браузерного рендера.
-
 `.trim();
 
-app.post('/chat', async (req, res) => {
+app.post('/chat', async (req: ChatRequest, res: Response) => {
   const { message: { text, from } } = req.body;
   const userId = from.id;
 
   try {
-    const userData = await redis.hgetall(`user:${userId}`);
+    const userData: UserData = await redis.hgetall(`user:${userId}`);
     const count = parseInt(userData.count || '0', 10);
     const isSubscribed = userData.isSubscribed === 'true';
 
@@ -55,19 +81,16 @@ app.post('/chat', async (req, res) => {
     }
 
     const rawHistory = await redis.lrange(`history:${userId}`, 0, -1);
-    const parsedHistory = rawHistory.map(JSON.parse);
+    const parsedHistory: ChatMessage[] = rawHistory.map(msg => JSON.parse(msg));
 
-    const messages = [
+    const messages: ChatMessage[] = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...parsedHistory,
       { role: 'user', content: text }
     ];
-console.log('[DEBUG] API KEY:', process.env.OPENAI_API_KEY);
-
-console.log('[DEBUG] API URL:', process.env.OPENAI_API_URL);
 
     const { data } = await axios.post(
-      process.env.OPENAI_API_URL,
+      process.env.OPENAI_API_URL!,
       {
         model: process.env.OPENAI_MODEL,
         messages,
@@ -76,7 +99,7 @@ console.log('[DEBUG] API URL:', process.env.OPENAI_API_URL);
       },
       {
         headers: {
-         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
@@ -94,18 +117,18 @@ console.log('[DEBUG] API URL:', process.env.OPENAI_API_URL);
       isLimitReached: !isSubscribed && count + 1 >= 5
     });
 
-  } catch (err) {
+  } catch (err: any) {
     console.error('[GPT-4o-mini ERROR]', err.response?.data || err.message || err);
     res.status(500).json({ message: '💥 Что-то пошло не так. Я в ауте.' });
   }
 });
 
-app.post('/subscribe', async (req, res) => {
+app.post('/subscribe', async (req: Request<{}, {}, { userId: number }>, res: Response) => {
   const { userId } = req.body;
 
   try {
     await redis.hset(`user:${userId}`, 'isSubscribed', 'true');
-    await redis.hset(`user:${userId}`, 'count', 0);
+    await redis.hset(`user:${userId}`, 'count', '0');
 
     res.json({
       success: true,
@@ -117,7 +140,7 @@ app.post('/subscribe', async (req, res) => {
   }
 });
 
-app.post('/reset-history', async (req, res) => {
+app.post('/reset-history', async (req: Request<{}, {}, { userId: number }>, res: Response) => {
   const { userId } = req.body;
 
   try {
@@ -129,11 +152,11 @@ app.post('/reset-history', async (req, res) => {
   }
 });
 
-app.get('/history', async (req, res) => {
+app.get('/history', async (req: Request<{}, {}, {}, { userId: string }>, res: Response) => {
   const { userId } = req.query;
   try {
     const raw = await redis.lrange(`history:${userId}`, 0, -1);
-    const parsed = raw.map(JSON.parse);
+    const parsed = raw.map(msg => JSON.parse(msg));
     res.json({ history: parsed });
   } catch (error) {
     console.error('[HISTORY ERROR]', error);
@@ -141,7 +164,7 @@ app.get('/history', async (req, res) => {
   }
 });
 
-app.get('/usage', async (req, res) => {
+app.get('/usage', async (req: Request<{}, {}, {}, { userId: string }>, res: Response) => {
   const { userId } = req.query;
   try {
     const userData = await redis.hgetall(`user:${userId}`);
@@ -153,4 +176,4 @@ app.get('/usage', async (req, res) => {
   }
 });
 
-module.exports = app;
+export default app; 

@@ -3,7 +3,7 @@ import { redis } from '../../utils/redis.js';
 
 const router = Router();
 
-const ADMIN_TELEGRAM_ID = 1234567890; // твой числовой ID из телеграма
+const ADMIN_TELEGRAM_ID = 781302983;
 
 // Middleware для проверки админ прав
 const isAdmin = async (req: Request, res: Response, next: Function) => {

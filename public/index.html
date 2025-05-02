@@ -546,10 +546,9 @@
 
     const ADMIN_ID = 'hzchetutnad';
     const userId = tg.initDataUnsafe?.user?.id;
-    let lastMessageBottom = 0;
 
     // Показываем админку только для админа
-    if (userId === ADMIN_ID) {
+    if (userId.toString() === ADMIN_ID) {
       document.getElementById('adminPanel').style.display = 'block';
       loadStats();
       loadUsers();

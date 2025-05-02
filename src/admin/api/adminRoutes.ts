@@ -9,7 +9,7 @@ const ADMIN_TELEGRAM_ID = 'hzchetutnad';
 const isAdmin = async (req: Request, res: Response, next: Function) => {
   const { telegramId } = req.headers;
   
-  if (!telegramId || telegramId !== ADMIN_TELEGRAM_ID) {
+  if (!telegramId || telegramId.toString() !== ADMIN_TELEGRAM_ID) {
     return res.status(403).json({ error: 'Доступ запрещен' });
   }
   

@@ -6,7 +6,6 @@ import cors from 'cors';
 import axios from 'axios';
 import Redis from 'ioredis';
 import adminRoutes from './admin/api/adminRoutes.js';
-import { AdminPanel } from './admin/components/AdminPanel.js';
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -132,9 +131,6 @@ app.get('/usage', async (req, res) => {
         console.error('[USAGE ERROR]', error);
         res.status(500).json({ used: 0 });
     }
-});
-app.get('/admin', (req, res) => {
-    res.send(AdminPanel);
 });
 app.use('/admin/api', adminRoutes);
 app.use(express.static(path.join(rootDir, 'public')));

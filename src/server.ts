@@ -5,6 +5,8 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import Redis from 'ioredis';
+import adminRoutes from './admin/api/adminRoutes';
+import { AdminPanel } from './admin/components/AdminPanel';
 
 dotenv.config();
 
@@ -176,5 +178,12 @@ app.get('/usage', async (req: Request<{}, {}, {}, { userId: string }>, res: Resp
     res.status(500).json({ used: 0 });
   }
 });
+
+// Админ панель
+app.get('/admin', (req: Request, res: Response) => {
+  res.send(AdminPanel);
+});
+
+app.use('/admin', adminRoutes);
 
 export default app; 

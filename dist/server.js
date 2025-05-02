@@ -5,6 +5,8 @@ import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import Redis from 'ioredis';
+import adminRoutes from './admin/api/adminRoutes';
+import { AdminPanel } from './admin/components/AdminPanel';
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -132,4 +134,9 @@ app.get('/usage', async (req, res) => {
         res.status(500).json({ used: 0 });
     }
 });
+app.get('/admin', (req, res) => {
+    res.send(AdminPanel);
+});
+app.use('/admin', adminRoutes);
 export default app;
+//# sourceMappingURL=server.js.map

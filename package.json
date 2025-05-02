@@ -1,12 +1,13 @@
 {
   "name": "mond-ai",
   "version": "1.0.0",
-  "main": "dist/server.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "node dist/index.js",
     "dev": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" src/index.ts",
     "build": "tsc",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "axios": "^1.6.7",

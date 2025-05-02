@@ -10,6 +10,7 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const rootDir = path.join(__dirname, '..');
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -37,7 +38,7 @@ interface UserData {
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*' }));
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(rootDir, 'public')));
 
 const redis = new Redis({
   port: 6379,

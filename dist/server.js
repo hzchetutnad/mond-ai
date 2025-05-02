@@ -5,7 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import Redis from 'ioredis';
-import adminRoutes from './admin/api/adminRoutes';
+import adminRoutes from './admin/api/adminRoutes.js';
 import { AdminPanel } from './admin/components/AdminPanel';
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -14,7 +14,6 @@ const rootDir = path.join(__dirname, '..');
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*' }));
-app.use(express.static(path.join(rootDir, 'public')));
 const redis = new Redis({
     port: 6379,
     host: 'current-ocelot-17582.upstash.io',
@@ -137,6 +136,7 @@ app.get('/usage', async (req, res) => {
 app.get('/admin', (req, res) => {
     res.send(AdminPanel);
 });
-app.use('/admin', adminRoutes);
+app.use('/admin/api', adminRoutes);
+app.use(express.static(path.join(rootDir, 'public')));
 export default app;
 //# sourceMappingURL=server.js.map

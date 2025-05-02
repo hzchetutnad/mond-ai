@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import axios from 'axios';
 import Redis from 'ioredis';
-import adminRoutes from './admin/api/adminRoutes';
+import adminRoutes from './admin/api/adminRoutes.js';
 import { AdminPanel } from './admin/components/AdminPanel';
 
 dotenv.config();
@@ -40,7 +40,6 @@ interface UserData {
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*' }));
-app.use(express.static(path.join(rootDir, 'public')));
 
 const redis = new Redis({
   port: 6379,
@@ -184,6 +183,8 @@ app.get('/admin', (req: Request, res: Response) => {
   res.send(AdminPanel);
 });
 
-app.use('/admin', adminRoutes);
+app.use('/admin/api', adminRoutes);
+
+app.use(express.static(path.join(rootDir, 'public')));
 
 export default app; 

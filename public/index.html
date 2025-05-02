@@ -557,7 +557,7 @@
 
     async function loadStats() {
       try {
-        const response = await fetch('/admin/stats', {
+        const response = await fetch('/admin/api/stats', {
           headers: {
             'telegramId': ADMIN_ID,
             'adminToken': 'any' // токен не важен, проверяем только ID
@@ -575,7 +575,7 @@
 
     async function loadUsers() {
       try {
-        const response = await fetch('/admin/users', {
+        const response = await fetch('/admin/api/users', {
           headers: {
             'telegramId': ADMIN_ID,
             'adminToken': 'any'
@@ -626,7 +626,7 @@
 
     async function toggleSubscription(userId, isSubscribed) {
       try {
-        await fetch(`/admin/users/${userId}/subscription`, {
+        await fetch(`/admin/api/users/${userId}/subscription`, {
           method: 'POST',
           headers: {
             'telegramId': ADMIN_ID,
@@ -647,7 +647,7 @@
       if (!confirm('Точно очистить историю этого пользователя?')) return;
       
       try {
-        await fetch(`/admin/users/${userId}/history`, {
+        await fetch(`/admin/api/users/${userId}/history`, {
           method: 'DELETE',
           headers: {
             'telegramId': ADMIN_ID,

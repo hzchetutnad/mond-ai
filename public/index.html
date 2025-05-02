@@ -544,11 +544,11 @@
       });
     });
 
-    const ADMIN_ID = 'hzchetutnad';
+    const ADMIN_ID = 1234567890; // твой числовой ID из телеграма
     const userId = tg.initDataUnsafe?.user?.id;
 
     // Показываем админку только для админа
-    if (userId.toString() === ADMIN_ID) {
+    if (userId === ADMIN_ID) {
       document.getElementById('adminPanel').style.display = 'block';
       loadStats();
       loadUsers();
@@ -559,8 +559,8 @@
       try {
         const response = await fetch('/admin/api/stats', {
           headers: {
-            'telegramId': ADMIN_ID,
-            'adminToken': 'any' // токен не важен, проверяем только ID
+            'telegramId': ADMIN_ID.toString(),
+            'Content-Type': 'application/json'
           }
         });
         const stats = await response.json();
@@ -577,8 +577,8 @@
       try {
         const response = await fetch('/admin/api/users', {
           headers: {
-            'telegramId': ADMIN_ID,
-            'adminToken': 'any'
+            'telegramId': ADMIN_ID.toString(),
+            'Content-Type': 'application/json'
           }
         });
         const users = await response.json();
@@ -629,8 +629,7 @@
         await fetch(`/admin/api/users/${userId}/subscription`, {
           method: 'POST',
           headers: {
-            'telegramId': ADMIN_ID,
-            'adminToken': 'any',
+            'telegramId': ADMIN_ID.toString(),
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ isSubscribed })
@@ -650,8 +649,8 @@
         await fetch(`/admin/api/users/${userId}/history`, {
           method: 'DELETE',
           headers: {
-            'telegramId': ADMIN_ID,
-            'adminToken': 'any'
+            'telegramId': ADMIN_ID.toString(),
+            'Content-Type': 'application/json'
           }
         });
         

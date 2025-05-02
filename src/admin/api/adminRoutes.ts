@@ -1,15 +1,15 @@
 import { Router, Request, Response } from 'express';
-import { redis } from '../../utils/redis';
+import { redis } from '../../utils/redis.js';
 
 const router = Router();
 
-const ADMIN_TELEGRAM_ID = 'hzchetutnad';
+const ADMIN_TELEGRAM_ID = 1234567890; // твой числовой ID из телеграма
 
 // Middleware для проверки админ прав
 const isAdmin = async (req: Request, res: Response, next: Function) => {
-  const { telegramId } = req.headers;
+  const telegramId = parseInt(req.headers.telegramid as string, 10);
   
-  if (!telegramId || telegramId.toString() !== ADMIN_TELEGRAM_ID) {
+  if (!telegramId || telegramId !== ADMIN_TELEGRAM_ID) {
     return res.status(403).json({ error: 'Доступ запрещен' });
   }
   

@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { redis } from '../../utils/redis';
+import { redis } from '../../utils/redis.js';
 const router = Router();
-const ADMIN_TELEGRAM_ID = 'hzchetutnad';
+const ADMIN_TELEGRAM_ID = 1234567890;
 const isAdmin = async (req, res, next) => {
-    const { telegramId } = req.headers;
-    if (!telegramId || telegramId.toString() !== ADMIN_TELEGRAM_ID) {
+    const telegramId = parseInt(req.headers.telegramid, 10);
+    if (!telegramId || telegramId !== ADMIN_TELEGRAM_ID) {
         return res.status(403).json({ error: 'Доступ запрещен' });
     }
     next();

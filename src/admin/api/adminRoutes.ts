@@ -7,9 +7,9 @@ const ADMIN_TELEGRAM_ID = 'hzchetutnad';
 
 // Middleware для проверки админ прав
 const isAdmin = async (req: Request, res: Response, next: Function) => {
-  const { adminToken, telegramId } = req.headers;
+  const { telegramId } = req.headers;
   
-  if (!adminToken || adminToken !== process.env.ADMIN_TOKEN || telegramId !== ADMIN_TELEGRAM_ID) {
+  if (!telegramId || telegramId !== ADMIN_TELEGRAM_ID) {
     return res.status(403).json({ error: 'Доступ запрещен' });
   }
   

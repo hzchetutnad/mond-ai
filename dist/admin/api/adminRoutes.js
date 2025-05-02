@@ -3,8 +3,8 @@ import { redis } from '../../utils/redis';
 const router = Router();
 const ADMIN_TELEGRAM_ID = 'hzchetutnad';
 const isAdmin = async (req, res, next) => {
-    const { adminToken, telegramId } = req.headers;
-    if (!adminToken || adminToken !== process.env.ADMIN_TOKEN || telegramId !== ADMIN_TELEGRAM_ID) {
+    const { telegramId } = req.headers;
+    if (!telegramId || telegramId !== ADMIN_TELEGRAM_ID) {
         return res.status(403).json({ error: 'Доступ запрещен' });
     }
     next();

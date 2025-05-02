@@ -235,12 +235,99 @@
   margin-bottom: 0.4em;
 }
 
+#adminPanel {
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--system-bg);
+  border-radius: 12px;
+}
+
+#adminPanel h2 {
+  margin: 0 0 20px 0;
+  color: var(--accent);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg);
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--accent);
+  margin: 10px 0;
+}
+
+.search {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 15px;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background: var(--bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.users-table th,
+.users-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--system-bg);
+}
+
+.users-table th {
+  background: var(--bg);
+  color: var(--accent);
+  font-weight: normal;
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.users-table button.danger {
+  background: #e74c3c;
+}
+
+.users-table button:hover {
+  opacity: 0.9;
+}
+
   </style>
 </head>
 <body>
   <div class="container">
     <div id="chat"></div>
-    <div id="adminPanel">
+    <div id="adminPanel" style="display: none;">
       <h2>Админ панель</h2>
       <div class="stats">
         <div class="stat-card">

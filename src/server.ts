@@ -6,7 +6,7 @@ import cors from 'cors';
 import axios from 'axios';
 import Redis from 'ioredis';
 import adminRoutes from './admin/api/adminRoutes.js';
-import { AdminPanel } from './admin/components/AdminPanel';
+import { AdminPanel } from './admin/components/AdminPanel.js';
 
 dotenv.config();
 
